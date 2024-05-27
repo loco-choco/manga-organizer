@@ -34,6 +34,25 @@ int read_record(FILE* file_pointer, manga_record** record){
   fread(&(*record)->volumes_amount, sizeof(int), 1, file_pointer);
   (*record)->volumes = malloc(sizeof(int) * (*record)->volumes_amount);
   fread((*record)->volumes, sizeof(int), (*record)->volumes_amount, file_pointer);
+  record_size(*record, &(*record)->original_size);
+  return 0;
+}
+
+int write_new_record(manga_record* record, FILE* file_pointer, long* position){
+  fseek(file_pointer, 0, SEEK_END);
+  *position = ftell(file_pointer);
+  write_record(record, file_pointer);
+  return 0;
+}
+
+int update_record(long position, manga_record* record, FILE* file_pointer){
+  int size_of_updated_record;
+  record_size(record, &size_of_updated_record);
+  if(size_of_updated_record != record->original_size)
+    return -1;
+
+  fseek(file_pointer, position, SEEK_SET);
+  write_record(record, file_pointer);
   return 0;
 }
 
@@ -55,5 +74,20 @@ int print_record(manga_record* record){
   printf("volumes_year=[");
   for(int i = 0; i < record->volumes_amount; i++) printf(" %d", record->volumes[i]);
   printf("]\n");
+  return 0;
+}
+
+int record_size(manga_record* record, int* size){
+  *size = sizeof(int) + strlen(record->isbn) * sizeof(char) +
+    sizeof(int) + strlen(record->title) * sizeof(char)+
+    sizeof(int) + strlen(record->authors) * sizeof(char)+
+    sizeof(int) + strlen(record->genre) * sizeof(char)+
+    sizeof(int) + strlen(record->magazine) * sizeof(char)+
+    sizeof(int) + strlen(record->publisher) * sizeof(char)+
+    sizeof(int) +
+    sizeof(int) +
+    sizeof(int) +
+    sizeof(int) +
+    sizeof(int) * record->volumes_amount;
   return 0;
 }

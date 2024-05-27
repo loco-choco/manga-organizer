@@ -32,11 +32,15 @@ int main(int argc, char ** argv)
     manga1->genre = "Todos";
     manga1->magazine = "nenhuma";
     manga1->publisher = "eu, denovo";
-
-    write_record(manga1, file_pointer);
-    write_record(manga1, file_pointer);
-    write_record(manga1, file_pointer);
-    write_record(manga1, file_pointer);
+    record_size(manga1, &manga1->original_size);
+    long position;
+    write_new_record(manga1, file_pointer, &position);
+    write_new_record(manga1, file_pointer, &position);
+    write_new_record(manga1, file_pointer, &position);
+    write_new_record(manga1, file_pointer, &position);
+    printf("pos=%ld\n");
+    manga1->title = "B";
+    update_record(position, manga1, file_pointer);
     fclose(file_pointer);
     manga_record* manga2;
     file_pointer = fopen("manga-db.mango", "r");
