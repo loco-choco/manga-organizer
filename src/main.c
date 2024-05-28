@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "record-entry.h"
+#include "primary-index-entry.h"
 
 int main(int argc, char ** argv)
 {
@@ -22,7 +23,7 @@ int main(int argc, char ** argv)
     endwin();
     */
 
-    FILE *file_pointer;/* = fopen("manga-db.mango", "w");
+    FILE *file_pointer = fopen("manga-db.mango", "w");
     manga_record* manga1 = calloc(1, sizeof(*manga1));
 
     manga1->isbn = "1";
@@ -42,7 +43,7 @@ int main(int argc, char ** argv)
     manga1->title = "B";
     update_record(position, manga1, file_pointer);
     fclose(file_pointer);
-    */    
+        
 
     manga_record* manga2;
     file_pointer = fopen("manga-db.mango", "r");
@@ -66,6 +67,16 @@ int main(int argc, char ** argv)
     
     print_record(manga2);
     free_record_entry(manga2);
+    
+    primary_index_list* keys;
+    create_primary_keys_from_record_file(file_pointer, &keys);
+
+    FILE *keys_file_pointer = fopen("manga-keys.keys", "w");
+
+    write_primary_keys_file(keys, keys_file_pointer);
+
+
+    fclose(file_pointer);
 
     return 0;
 }
