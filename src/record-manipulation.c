@@ -5,6 +5,11 @@
 #include "string-helpers.h"
 #include "record-entry.h"
 
+#define DELETED_RECORD '\x18'
+
+#define END_OF_VOLUMES '\x7f'
+#define MAX_VOLUME_AMOUNT 100
+
 int write_record(manga_record* record, FILE* file_pointer){
   write_string(record->isbn, file_pointer);
   write_string(record->title, file_pointer);
@@ -15,8 +20,9 @@ int write_record(manga_record* record, FILE* file_pointer){
   fwrite(&record->start_year, sizeof(int), 1, file_pointer);
   fwrite(&record->end_year, sizeof(int), 1, file_pointer);
   fwrite(&record->edition_year, sizeof(int), 1, file_pointer);
-  fwrite(&record->volumes_amount, sizeof(int), 1, file_pointer);
-  fwrite(record->volumes, sizeof(int), record->volumes_amount, file_pointer);
+  fwrite(record->volumes, sizeof(char), record->volumes_amount, file_pointer);
+  char end_of_record = END_OF_VOLUMES;
+  fwrite(&end_of_record, sizeof(char), 1, file_pointer);
   return 0;
 }
 
@@ -31,9 +37,23 @@ int read_record(FILE* file_pointer, manga_record** record){
   fread(&(*record)->start_year, sizeof(int), 1, file_pointer);
   fread(&(*record)->end_year, sizeof(int), 1, file_pointer);
   fread(&(*record)->edition_year, sizeof(int), 1, file_pointer);
-  fread(&(*record)->volumes_amount, sizeof(int), 1, file_pointer);
-  (*record)->volumes = malloc(sizeof(int) * (*record)->volumes_amount);
-  fread((*record)->volumes, sizeof(int), (*record)->volumes_amount, file_pointer);
+
+  int volumes_amount = 0;
+  char* buffer = malloc(MAX_VOLUME_AMOUNT * sizeof(char));
+  char volume;
+  fread(&volume, sizeof(char), 1, file_pointer);
+  while(volume != END_OF_VOLUMES){
+    if(volumes_amount < MAX_VOLUME_AMOUNT){
+      buffer[volumes_amount] = volume;
+      volumes_amount++;
+    }
+    fread(&volume, sizeof(char), 1, file_pointer);
+  }
+  (*record)->volumes_amount = volumes_amount;
+  (*record)->volumes = malloc(sizeof(char) * (*record)->volumes_amount);
+  memcpy((*record)->volumes, buffer, sizeof(char) * volumes_amount);
+  free(buffer);
+
   record_size(*record, &(*record)->original_size);
   return 0;
 }
@@ -56,6 +76,13 @@ int update_record(long position, manga_record* record, FILE* file_pointer){
   return 0;
 }
 
+int mark_record_as_deleted(long position, FILE* file_pointer){
+  fseek(file_pointer, position, SEEK_SET);
+  char deleted_record = DELETED_RECORD;
+  fwrite(&deleted_record, sizeof(char), 1, file_pointer);
+  return 0;
+}
+
 int read_record_in_position(FILE* file_pointer, long position, manga_record** record){
   fseek(file_pointer, position, SEEK_SET);
   return read_record(file_pointer, record);
@@ -73,21 +100,32 @@ int print_record(manga_record* record){
   printf("edition_year=%d\n", record->edition_year);
   printf("volumes_year=[");
   for(int i = 0; i < record->volumes_amount; i++) printf(" %d", record->volumes[i]);
-  printf("]\n");
+  printf(" ]\n");
   return 0;
 }
 
 int record_size(manga_record* record, int* size){
-  *size = sizeof(int) + strlen(record->isbn) * sizeof(char) +
-    sizeof(int) + strlen(record->title) * sizeof(char)+
-    sizeof(int) + strlen(record->authors) * sizeof(char)+
-    sizeof(int) + strlen(record->genre) * sizeof(char)+
-    sizeof(int) + strlen(record->magazine) * sizeof(char)+
-    sizeof(int) + strlen(record->publisher) * sizeof(char)+
+  *size = strlen(record->isbn) * sizeof(char) + sizeof(char) +
+    strlen(record->title) * sizeof(char) + sizeof(char) +
+    strlen(record->authors) * sizeof(char) + sizeof(char) +
+    strlen(record->genre) * sizeof(char) + sizeof(char) +
+    strlen(record->magazine) * sizeof(char) + sizeof(char) +
+    strlen(record->publisher) * sizeof(char) + sizeof(char) +
     sizeof(int) +
     sizeof(int) +
     sizeof(int) +
-    sizeof(int) +
-    sizeof(int) * record->volumes_amount;
+    sizeof(int) * record->volumes_amount +
+    sizeof(char);
   return 0;
+}
+
+int free_record_entry(manga_record* record){
+  if(record->isbn != NULL) free(record->isbn);
+  if(record->title != NULL) free(record->title);
+  if(record->authors != NULL) free(record->authors);
+  if(record->genre != NULL) free(record->genre);
+  if(record->magazine != NULL) free(record->magazine);
+  if(record->publisher != NULL) free(record->publisher);
+  if(record->volumes != NULL) free(record->volumes);
+  free(record);
 }

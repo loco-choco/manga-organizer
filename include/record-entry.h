@@ -13,7 +13,7 @@ struct manga_record {
   int end_year;
   int edition_year;
   int volumes_amount;
-  int* volumes;
+  char* volumes;
   int original_size;
 } typedef manga_record;
 
@@ -24,4 +24,5 @@ int update_record(long position, manga_record* record, FILE* file_pointer); //re
 int read_record_in_position(FILE* file_pointer, long position, manga_record** record);
 int print_record(manga_record* record);
 int record_size(manga_record* record, int* size);
+int free_record_entry(manga_record* record);
 #endif

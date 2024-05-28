@@ -22,8 +22,7 @@ int main(int argc, char ** argv)
     endwin();
     */
 
-    FILE *file_pointer = fopen("manga-db.mango", "w");
-
+    FILE *file_pointer;/* = fopen("manga-db.mango", "w");
     manga_record* manga1 = calloc(1, sizeof(*manga1));
 
     manga1->isbn = "1";
@@ -32,30 +31,41 @@ int main(int argc, char ** argv)
     manga1->genre = "Todos";
     manga1->magazine = "nenhuma";
     manga1->publisher = "eu, denovo";
+    manga1->volumes_amount = 2;
+    manga1->volumes = "\x01";
     record_size(manga1, &manga1->original_size);
     long position;
     write_new_record(manga1, file_pointer, &position);
     write_new_record(manga1, file_pointer, &position);
     write_new_record(manga1, file_pointer, &position);
     write_new_record(manga1, file_pointer, &position);
-    printf("pos=%ld\n");
     manga1->title = "B";
     update_record(position, manga1, file_pointer);
     fclose(file_pointer);
+    */    
+
     manga_record* manga2;
     file_pointer = fopen("manga-db.mango", "r");
+    
     read_record(file_pointer, &manga2);
     print_record(manga2);
-    free(manga2);
+    
+    free_record_entry(manga2);
+    
     read_record(file_pointer, &manga2);
     print_record(manga2);
-    free(manga2);
+    
+    free_record_entry(manga2);
+    
     read_record(file_pointer, &manga2);
     print_record(manga2);
-    free(manga2);
+    
+    free_record_entry(manga2);
+    
     read_record(file_pointer, &manga2);
+    
     print_record(manga2);
-    free(manga2);
+    free_record_entry(manga2);
 
     return 0;
 }
