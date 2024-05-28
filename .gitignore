@@ -1,2 +1,3 @@
 # Ignore ls cahce
 .ccls-cache/
+compile_commands.json

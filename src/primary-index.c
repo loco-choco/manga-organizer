@@ -89,8 +89,11 @@ int mark_primary_keys_file_as_inconsistent(FILE* file_pointer){
   return 0;
 }
 
-int read_primary_keys_file(FILE* file_pointer, int* inconsistent, primary_index_list** primary_keys){
-  fread(inconsistent, sizeof(int), 1, file_pointer);
+int read_primary_keys_file(FILE* file_pointer, primary_index_list** primary_keys){
+  fseek(file_pointer, 0, SEEK_SET);
+  int inconsistent;
+  fread(&inconsistent, sizeof(int), 1, file_pointer);
+  if(inconsistent == 1) return -1;
   read_all_primary_keys(file_pointer, primary_keys);
   return 0;
 }

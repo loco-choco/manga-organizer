@@ -20,6 +20,6 @@ int free_primary_index(primary_index_entry* entry);
 
 int write_primary_keys_file(primary_index_list* primary_keys, FILE* file_pointer);
 int mark_primary_keys_file_as_inconsistent(FILE* file_pointer);
-int read_primary_keys_file(FILE* file_pointer, int* inconsistent, primary_index_list** primary_keys);
+int read_primary_keys_file(FILE* file_pointer, primary_index_list** primary_keys);
 int create_primary_keys_from_record_file(FILE* file_pointer, primary_index_list** primary_keys);
 #endif
