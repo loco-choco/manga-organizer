@@ -24,8 +24,7 @@ int read_primary_key(FILE* file_pointer, primary_index_entry** entry){
 int write_all_primary_keys(primary_index_list* primary_keys, FILE* file_pointer){
   primary_index_list* current = primary_keys;
   while(current != NULL){
-    char entry_start = ENTRY_START;
-    fwrite(&entry_start, sizeof(char), 1, file_pointer);
+    fputc(ENTRY_START, file_pointer);
     write_primary_key(current->entry, file_pointer);
     current = current->next;
   }
@@ -33,25 +32,14 @@ int write_all_primary_keys(primary_index_list* primary_keys, FILE* file_pointer)
 }
 int read_all_primary_keys(FILE* file_pointer, primary_index_list** primary_keys){
   *primary_keys = NULL;
-  primary_index_list* current;
-  primary_index_list* previous;
-  previous = NULL;
 
-  char entry_start;
-  fread(&entry_start, sizeof(char), 1, file_pointer);
+  char entry_start = fgetc(file_pointer);
   while(entry_start != EOF){
     primary_index_entry* new_entry;
     read_primary_key(file_pointer, &new_entry);
-
-    current = calloc(1, sizeof(*current));
-
-    if(*primary_keys == NULL)
-      *primary_keys = current;
-    if(previous != NULL)
-      previous->next = current;
-
-    current->entry = new_entry;
-    previous = current;
+    sorted_insert_primary_keys(primary_keys, new_entry);
+    
+    entry_start = fgetc(file_pointer);
   }
   return 0;
 }
@@ -61,8 +49,8 @@ int free_primary_index_list(primary_index_list* primary_keys){
   primary_index_list* old_current;
   while(current != NULL){
     if(current->entry != NULL) free_primary_index(current->entry);
-    current = current->next;
     old_current = current;
+    current = current->next;
     free(old_current);
   }
   return 0;
@@ -138,5 +126,38 @@ int create_primary_keys_from_record_file(FILE* file_pointer, primary_index_list*
 
     current_char = fgetc(file_pointer);
   }
+  return 0;
+}
+
+int primary_keys_size(primary_index_list* primary_keys){
+  int size = 0;
+  primary_index_list* current = primary_keys;
+  while(current != NULL){
+    size++;
+    current = current->next;
+  }
+  return size;
+}
+//from https://www.geeksforgeeks.org/sorting-a-singly-linked-list/
+int sorted_insert_primary_keys(primary_index_list** keys, primary_index_entry* entry){
+  primary_index_list *new_entry, *current;
+  new_entry = calloc(1, sizeof(*new_entry));
+  new_entry->entry = entry;
+  if(*keys == NULL || strcmp(entry->isbn, (*keys)->entry->isbn) <= 0){
+    new_entry->next = *keys;
+    *keys = new_entry;
+  }
+  else{
+    current = *keys;
+    while(current->next != NULL && strcmp(entry->isbn, current->next->entry->isbn) > 0){
+      current = current->next;
+    }
+    new_entry->next = current->next;
+    current->next = new_entry;
+  }
+  return 0;
+}
+
+int search_primary_keys(primary_index_list* primary_keys, char* isbn, int* position){
   return 0;
 }

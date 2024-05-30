@@ -22,4 +22,6 @@ int write_primary_keys_file(primary_index_list* primary_keys, FILE* file_pointer
 int mark_primary_keys_file_as_inconsistent(FILE* file_pointer);
 int read_primary_keys_file(FILE* file_pointer, primary_index_list** primary_keys);
 int create_primary_keys_from_record_file(FILE* file_pointer, primary_index_list** primary_keys);
+int sorted_insert_primary_keys(primary_index_list** primary_keys, primary_index_entry* entry);
+int search_primary_keys(primary_index_list* primary_keys, char* isbn, int* position);
 #endif

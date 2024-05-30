@@ -38,6 +38,7 @@ int main(int argc, char ** argv)
     long position;
     write_new_record(manga1, file_pointer, &position);
     write_new_record(manga1, file_pointer, &position);
+    manga1->isbn = "2";
     write_new_record(manga1, file_pointer, &position);
     write_new_record(manga1, file_pointer, &position);
     manga1->title = "B";
@@ -75,7 +76,15 @@ int main(int argc, char ** argv)
 
     write_primary_keys_file(keys, keys_file_pointer);
 
+    fclose(keys_file_pointer);
+    //return 0;
+    free_primary_index_list(keys);
 
+    keys_file_pointer = fopen("manga-keys.keys", "r");
+    printf("BAHHHHHHHH\n");
+    read_primary_keys_file(keys_file_pointer, &keys);
+    printf("%s - %d\n", keys->entry->isbn, keys->entry->position);
+    
     fclose(file_pointer);
 
     return 0;
