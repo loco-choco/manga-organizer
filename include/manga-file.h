@@ -15,5 +15,6 @@ int close_manga_file(manga_file* mangas);
 int search_manga_isbn(manga_file* mangas, char* isbn, manga_record** manga);
 int add_new_manga(manga_file* mangas, manga_record* manga);
 int update_manga(manga_file* mangas, manga_record* manga);
+int update_manga_isbn(manga_file* mangas, char* old_isbn, manga_record* manga);
 int remove_manga(manga_file* mangas, manga_record* manga);
 #endif

@@ -3,7 +3,7 @@
 #define PRIMARY_INDEX_ENTRY_H
 struct primary_index_entry {
   char* isbn;
-  int position;
+  long position;
 } typedef primary_index_entry;
 
 struct primary_index_list {
@@ -23,5 +23,6 @@ int mark_primary_keys_file_as_inconsistent(FILE* file_pointer);
 int read_primary_keys_file(FILE* file_pointer, primary_index_list** primary_keys);
 int create_primary_keys_from_record_file(FILE* file_pointer, primary_index_list** primary_keys);
 int sorted_insert_primary_keys(primary_index_list** primary_keys, primary_index_entry* entry);
-int search_primary_keys(primary_index_list* primary_keys, char* isbn, int* position);
+int remove_primary_keys(primary_index_list** primary_keys, char* isbn);
+int search_primary_keys(primary_index_list* primary_keys, char* isbn, primary_index_entry** entry);
 #endif

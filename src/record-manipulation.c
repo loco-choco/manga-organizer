@@ -41,13 +41,13 @@ int read_record(FILE* file_pointer, manga_record** record){
   int volumes_amount = 0;
   char* buffer = malloc(MAX_VOLUME_AMOUNT * sizeof(char));
   char volume;
-  fread(&volume, sizeof(char), 1, file_pointer);
+  volume = getc(file_pointer);
   while(volume != END_OF_VOLUMES){
     if(volumes_amount < MAX_VOLUME_AMOUNT){
       buffer[volumes_amount] = volume;
       volumes_amount++;
     }
-    fread(&volume, sizeof(char), 1, file_pointer);
+    volume = getc(file_pointer);
   }
   (*record)->volumes_amount = volumes_amount;
   (*record)->volumes = malloc(sizeof(char) * (*record)->volumes_amount);
@@ -128,4 +128,5 @@ int free_record_entry(manga_record* record){
   if(record->publisher != NULL) free(record->publisher);
   if(record->volumes != NULL) free(record->volumes);
   free(record);
+  return 0;
 }

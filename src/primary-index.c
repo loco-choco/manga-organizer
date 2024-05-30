@@ -10,14 +10,14 @@
 
 int write_primary_key(primary_index_entry* entry, FILE* file_pointer){
   write_string(entry->isbn, file_pointer);
-  fwrite(&entry->position, sizeof(int), 1, file_pointer);
+  fwrite(&entry->position, sizeof(long), 1, file_pointer);
   return 0;
 }
 
 int read_primary_key(FILE* file_pointer, primary_index_entry** entry){
   *entry = malloc(sizeof(**entry));
   read_string(file_pointer, &(*entry)->isbn);
-  fread(&(*entry)->position, sizeof(int), 1, file_pointer);
+  fread(&(*entry)->position, sizeof(long), 1, file_pointer);
   return 0;
 }
 
@@ -158,6 +158,34 @@ int sorted_insert_primary_keys(primary_index_list** keys, primary_index_entry* e
   return 0;
 }
 
-int search_primary_keys(primary_index_list* primary_keys, char* isbn, int* position){
+int remove_primary_keys(primary_index_list** primary_keys, char* isbn){
+  primary_index_list *current, *previous;
+  previous = NULL;
+  current = *primary_keys;
+  while(current != NULL || strcmp(current->entry->isbn, isbn) != 0){
+    previous = current;
+    current = current->next;
+  }
+  if(current == NULL)
+    return -1;
+  if(previous == NULL)
+    *primary_keys = current->next;
+  else
+    previous->next = current->next;
+
+  if(current->entry != NULL) free_primary_index(current->entry);
+  free(current);
+
+  return 0;
+}
+
+int search_primary_keys(primary_index_list* primary_keys, char* isbn, primary_index_entry** entry){
+  primary_index_list* current = primary_keys;
+  while(current != NULL || strcmp(current->entry->isbn, isbn) != 0)
+    current = current->next;
+  if(current == NULL)
+    return -1;
+  
+  *entry = current->entry;
   return 0;
 }
