@@ -162,7 +162,7 @@ int remove_primary_keys(primary_index_list** primary_keys, char* isbn){
   primary_index_list *current, *previous;
   previous = NULL;
   current = *primary_keys;
-  while(current != NULL || strcmp(current->entry->isbn, isbn) != 0){
+  while(current != NULL && strcmp(current->entry->isbn, isbn) != 0){
     previous = current;
     current = current->next;
   }
@@ -181,8 +181,9 @@ int remove_primary_keys(primary_index_list** primary_keys, char* isbn){
 
 int search_primary_keys(primary_index_list* primary_keys, char* isbn, primary_index_entry** entry){
   primary_index_list* current = primary_keys;
-  while(current != NULL || strcmp(current->entry->isbn, isbn) != 0)
+  while(current != NULL && strcmp(current->entry->isbn, isbn) != 0){
     current = current->next;
+  }
   if(current == NULL)
     return -1;
   

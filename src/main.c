@@ -1,14 +1,15 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+#include "manga-file.h"
 #include "record-entry.h"
 #include "primary-index-entry.h"
 
 int main(int argc, char ** argv)
 {
-    /*
-    // init screen and sets up screen
-    initscr();
+  /*
+  // init screen and sets up screen
+  initscr();
 
     // print to screen
     printw("Hello World");
@@ -22,71 +23,31 @@ int main(int argc, char ** argv)
     // deallocates memory and ends ncurses
     endwin();
     */
+  manga_file* mangas;
+  manga_record *manga_in, *manga_out;
+  printf("Reading the files...\n");
+  open_manga_file("manga-db.mango", "manga-keys.keys", &mangas);
+  printf("Files read!\n");
+  if(search_manga_isbn(mangas, "1", &manga_in) == 0){
+    printf("Found manga with isbn %s\n", manga_in->isbn);
+    free_record_entry(manga_in);
+  }
+  manga_out = calloc(1, sizeof(*manga_out));
+  manga_out->isbn = "1";
+  manga_out->title = "A";
+  manga_out->authors = "Eu";
+  manga_out->genre = "Todos";
+  manga_out->magazine = "nenhuma";
+  manga_out->publisher = "eu, denovo";
+  manga_out->volumes_amount = 2;
+  manga_out->volumes = "\x01";
 
-    FILE *file_pointer = fopen("manga-db.mango", "w");
-    manga_record* manga1 = calloc(1, sizeof(*manga1));
+  if(add_new_manga(mangas, manga_out) == -1){
+    printf("A manga with isbn %s already exists!\n", manga_out->isbn);
+  }
 
-    manga1->isbn = "1";
-    manga1->title = "A";
-    manga1->authors = "Eu";
-    manga1->genre = "Todos";
-    manga1->magazine = "nenhuma";
-    manga1->publisher = "eu, denovo";
-    manga1->volumes_amount = 2;
-    manga1->volumes = "\x01";
-    record_size(manga1, &manga1->original_size);
-    long position;
-    write_new_record(manga1, file_pointer, &position);
-    write_new_record(manga1, file_pointer, &position);
-    manga1->isbn = "2";
-    write_new_record(manga1, file_pointer, &position);
-    write_new_record(manga1, file_pointer, &position);
-    manga1->title = "B";
-    update_record(position, manga1, file_pointer);
-    fclose(file_pointer);
-        
+  close_manga_file(mangas);
 
-    manga_record* manga2;
-    file_pointer = fopen("manga-db.mango", "r");
-    
-    read_record(file_pointer, &manga2);
-    print_record(manga2);
-    
-    free_record_entry(manga2);
-    
-    read_record(file_pointer, &manga2);
-    print_record(manga2);
-    
-    free_record_entry(manga2);
-    
-    read_record(file_pointer, &manga2);
-    print_record(manga2);
-    
-    free_record_entry(manga2);
-    
-    read_record(file_pointer, &manga2);
-    
-    print_record(manga2);
-    free_record_entry(manga2);
-    
-    primary_index_list* keys;
-    create_primary_keys_from_record_file(file_pointer, &keys);
-
-    FILE *keys_file_pointer = fopen("manga-keys.keys", "w");
-
-    write_primary_keys_file(keys, keys_file_pointer);
-
-    fclose(keys_file_pointer);
-    //return 0;
-    free_primary_index_list(keys);
-
-    keys_file_pointer = fopen("manga-keys.keys", "r");
-    printf("BAHHHHHHHH\n");
-    read_primary_keys_file(keys_file_pointer, &keys);
-    printf("%s - %d\n", keys->entry->isbn, keys->entry->position);
-    
-    fclose(file_pointer);
-
-    return 0;
+  return 0;
 }
 
