@@ -54,7 +54,7 @@ int add_new_manga(manga_file* mangas, manga_record* manga){
   write_new_record(manga, mangas->record_file, &position);
 
   primary_index_entry* new_key_entry = malloc(sizeof(*new_key_entry));
-  new_key_entry->isbn = malloc(sizeof(char)*strlen(manga->isbn));
+  new_key_entry->isbn = malloc(sizeof(char)*(strlen(manga->isbn) + 1));
   strcpy(new_key_entry->isbn, manga->isbn);
   new_key_entry->position = position;
 

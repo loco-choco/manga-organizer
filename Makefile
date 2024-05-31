@@ -1,5 +1,5 @@
 all:
-	gcc src/*.c -I include/ -lncurses -o out/manga-organizer
+	gcc src/*.c -I include/ -lpanel -lform -lmenu -lncurses -o out/manga-organizer
 clean:
 	rm -rf out/*
 run:
