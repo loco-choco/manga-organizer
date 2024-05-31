@@ -65,7 +65,7 @@ int add_new_manga(manga_file* mangas, manga_record* manga){
 int update_manga(manga_file* mangas, manga_record* manga){
   primary_index_entry* entry;
   if(search_primary_keys(mangas->keys, manga->isbn, &entry) != 0) return -1; //cant update if the isbn doesnt exists
-  if(update_record(entry->position, manga, mangas->record_file) != 0) return 0; //was able to update without an issue
+  if(update_record(entry->position, manga, mangas->record_file) == 0) return 0; //was able to update without an issue
   //no space, so mark the current pos for deletion and add append record
   mark_record_as_deleted(entry->position, mangas->record_file);
   write_new_record(manga, mangas->record_file, &entry->position);

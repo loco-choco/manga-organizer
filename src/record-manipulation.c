@@ -54,7 +54,9 @@ int read_record(FILE* file_pointer, manga_record** record){
   memcpy((*record)->volumes, buffer, sizeof(char) * volumes_amount);
   free(buffer);
 
-  record_size(*record, &(*record)->original_size);
+  int og_size;
+  record_size(*record, &og_size);
+  (*record)->original_size = og_size;
   return 0;
 }
 
