@@ -16,7 +16,7 @@ int open_manga_file(char* record_file_name, char* primary_keys_file_name, manga_
       create_primary_keys_from_record_file(record_file, &keys);
     }
     else{
-      record_file = fopen(record_file_name, "w");
+      record_file = fopen(record_file_name, "w+");
       keys = NULL;
     }
   }

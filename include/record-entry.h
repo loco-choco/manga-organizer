@@ -2,6 +2,9 @@
 
 #ifndef RECORD_ENTRY_H
 #define RECORD_ENTRY_H
+
+#define DELETED_RECORD '\x18'
+
 struct manga_record {
   char* isbn;
   char* title;

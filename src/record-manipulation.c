@@ -5,7 +5,6 @@
 #include "string-helpers.h"
 #include "record-entry.h"
 
-#define DELETED_RECORD '\x18'
 
 #define END_OF_VOLUMES '\x7f'
 #define MAX_VOLUME_AMOUNT 100
@@ -64,6 +63,7 @@ int write_new_record(manga_record* record, FILE* file_pointer, long* position){
   fseek(file_pointer, 0, SEEK_END);
   *position = ftell(file_pointer);
   write_record(record, file_pointer);
+  fflush(file_pointer);
   return 0;
 }
 
@@ -75,6 +75,7 @@ int update_record(long position, manga_record* record, FILE* file_pointer){
 
   fseek(file_pointer, position, SEEK_SET);
   write_record(record, file_pointer);
+  fflush(file_pointer);
   return 0;
 }
 
@@ -82,6 +83,7 @@ int mark_record_as_deleted(long position, FILE* file_pointer){
   fseek(file_pointer, position, SEEK_SET);
   char deleted_record = DELETED_RECORD;
   fwrite(&deleted_record, sizeof(char), 1, file_pointer);
+  fflush(file_pointer);
   return 0;
 }
 

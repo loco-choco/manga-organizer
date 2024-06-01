@@ -67,6 +67,7 @@ int write_primary_keys_file(primary_index_list* primary_keys, FILE* file_pointer
   int inconsistent = 0;
   fwrite(&inconsistent, sizeof(int), 1, file_pointer);
   write_all_primary_keys(primary_keys, file_pointer);
+  fflush(file_pointer);
   return 0;
 }
 
@@ -74,6 +75,7 @@ int mark_primary_keys_file_as_inconsistent(FILE* file_pointer){
   fseek(file_pointer, 0, SEEK_SET);
   int inconsistent = 1;
   fwrite(&inconsistent, sizeof(int), 1, file_pointer);
+  fflush(file_pointer);
   return 0;
 }
 
@@ -100,10 +102,15 @@ int create_primary_keys_from_record_file(FILE* file_pointer, primary_index_list*
   while(current_char != EOF){
     ungetc(current_char, file_pointer);
 
-    primary_index_entry* new_entry = malloc(sizeof(*new_entry));
     manga_record* manga;
     read_record(file_pointer, &manga);
+
+    if(manga->isbn[0] == DELETED_RECORD){
+      free_record_entry(manga);
+      continue;
+    }
     
+    primary_index_entry* new_entry = malloc(sizeof(*new_entry));
     int isbn_size = strlen(manga->isbn);
     new_entry->isbn = malloc(sizeof(char) * (isbn_size + 1));
     strcpy(new_entry->isbn, manga->isbn);
