@@ -4,6 +4,7 @@
 
 #include "secondary-index-entry.h"
 #include "string-helpers.h"
+#include "record-entry.h"
 
 
 // ISBNS FILE
@@ -82,6 +83,25 @@ int read_all_secondary_keys(FILE* titles_file_pointer, secondary_index_list** se
  }
  return 0;
 }
+int create_secondary_keys_from_record_file(FILE* file_pointer, secondary_index_file* secondary_keys_file){
+  int current_char;
+  current_char = fgetc(file_pointer);
+  while(current_char != EOF){
+    ungetc(current_char, file_pointer);
+
+    manga_record* manga;
+    read_record(file_pointer, &manga);
+
+    if(manga->isbn[0] == DELETED_RECORD){
+      free_record_entry(manga);
+      continue;
+    }
+    sorted_insert_secondary_keys(secondary_keys_file, manga->title, manga->isbn);
+    free_record_entry(manga);
+    current_char = fgetc(file_pointer);
+  }
+  return 0;
+}
 
 int free_secondary_index(secondary_index_entry* entry){
   if(entry->title != NULL) free(entry->title);
@@ -100,7 +120,7 @@ int free_secondary_index_list(secondary_index_list* secondary_keys){
 }
 //SECONDARY INDEX INTERFACE
 
-int sorted_insert_secondary_keys(secondary_index_file* secondary_keys, char* title, char* isbn){
+int sorted_insert_secondary_keys(secondary_index_file* secondary_keys_file, char* title, char* isbn){
   long position;
   secondary_index_list* current, *new_entry;
   current = secondary_keys->index_list;

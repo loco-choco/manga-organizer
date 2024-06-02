@@ -25,6 +25,7 @@ int write_secondary_key(secondary_index_entry* entry, FILE* titles_file_pointer)
 int read_secondary_key(FILE* titles_file_pointer, secondary_index_entry** entry);
 int write_all_secondary_keys(FILE* titles_file_pointer, secondary_index_list* secondary_keys);
 int read_all_secondary_keys(FILE* titles_file_pointer, secondary_index_list** secondary_keys);
+int create_secondary_keys_from_record_file(FILE* file_pointer, secondary_index_file* secondary_keys_file);
 
 int free_secondary_index_list(secondary_index_list* secondary_keys);
 int free_secondary_index(secondary_index_entry* entry);
