@@ -52,14 +52,16 @@ int main(int argc, char ** argv)
       if(result == 0) //doesnt want to edit, return to menu
         continue;
       if(result == 1){
+        char* title = malloc(sizeof(char) * (strlen(manga->title) + 1));
+        strcpy(title, manga->title);
         char* isbn = malloc(sizeof(char) * (strlen(manga->isbn) + 1));
         strcpy(isbn, manga->isbn);
         result = entry_editing(COLS, LINES, manga);
         if(result == 0){
           if(strcmp(isbn, manga->isbn) == 0)
-            update_manga(mangas, manga);
+            update_manga(mangas, title, manga);
           else
-            update_manga_isbn(mangas, isbn, manga);
+            update_manga_isbn(mangas, isbn, title, manga);
         }
         free(isbn);
       }
@@ -91,16 +93,30 @@ int main(int argc, char ** argv)
 int load_record(char* db_name, manga_file** mangas){
   const char record_file_sufix[] = "-db.mango";
   const char primary_keys_file_sufix[] = "-keys.pkeys";
+  const char secondary_keys_isbns_file_sufix[] = "-keys.sikeys";
+  const char secondary_keys_titles_file_sufix[] = "-keys.stkeys";
+
+  char *secondary_keys_titles_file_name, *secondary_keys_isbns_file_name;
   char *primary_keys_file_name, *record_file_name;
   int db_name_size = strlen(db_name);
+
   record_file_name = calloc(db_name_size + strlen(record_file_sufix) + 1, sizeof(char));
-  primary_keys_file_name = calloc(db_name_size + strlen(primary_keys_file_sufix) + 1, sizeof(char));
   memcpy(record_file_name, db_name, db_name_size);
   memcpy(&record_file_name[db_name_size], record_file_sufix, strlen(record_file_sufix));
+
+  primary_keys_file_name = calloc(db_name_size + strlen(primary_keys_file_sufix) + 1, sizeof(char));
   memcpy(primary_keys_file_name, db_name, db_name_size);
   memcpy(&primary_keys_file_name[db_name_size], primary_keys_file_sufix, strlen(primary_keys_file_sufix));
 
-  open_manga_file(record_file_name, primary_keys_file_name, mangas);
+  secondary_keys_isbns_file_name = calloc(db_name_size + strlen(secondary_keys_isbns_file_sufix) + 1, sizeof(char));
+  memcpy(secondary_keys_isbns_file_name, db_name, db_name_size);
+  memcpy(&secondary_keys_isbns_file_name[db_name_size], secondary_keys_isbns_file_sufix, strlen(secondary_keys_isbns_file_sufix));
+
+  secondary_keys_titles_file_name = calloc(db_name_size + strlen(secondary_keys_titles_file_sufix) + 1, sizeof(char));
+  memcpy(secondary_keys_titles_file_name, db_name, db_name_size);
+  memcpy(&secondary_keys_titles_file_name[db_name_size], secondary_keys_titles_file_sufix, strlen(secondary_keys_titles_file_sufix));
+
+  open_manga_file(record_file_name, secondary_keys_isbns_file_name, secondary_keys_titles_file_name, primary_keys_file_name, mangas);
   free(record_file_name);
   free(primary_keys_file_name);
   return 0;
