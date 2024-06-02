@@ -143,6 +143,7 @@ int load_record(char* db_name, manga_file** mangas){
   return 0;
 }
 int entry_search(int win_w, int win_h, manga_file* mangas, manga_record** manga){
+  clear();
   //Pesquisar com ISBN a entrada
   //-1 se quiser cancelar e voltar para o menu
   FORM  *isbn_form;
@@ -215,6 +216,7 @@ int entry_search(int win_w, int win_h, manga_file* mangas, manga_record** manga)
   return -1;
 }
 int title_search(int win_w, int win_h, manga_file* mangas, char** title, int* amount, char*** isbns){
+  clear();
   //Pesquisar com titles os isbns
   //-1 se quiser cancelar e voltar para o menu
   FORM  *title_form;
@@ -261,13 +263,13 @@ int title_search(int win_w, int win_h, manga_file* mangas, char** title, int* am
         int is_valid = form_driver(title_form, REQ_VALIDATION);
         if(is_valid == E_OK){
           char* _title = field_buffer(title_field[0], 0);
-          if(search_manga_title(mangas, _title, amount, isbns) == 0){
+          int found = search_manga_title(mangas, _title, amount, isbns);
+          if(found == 0 && *amount > 0){
             run = 0;
             found_title = 1;
             *title = malloc(sizeof(char) * (strlen(_title) + 1));
             strcpy(*title, _title);
-          }
-          else{
+          } else {
             mvprintw(win_h/2 - 2, win_w/2 - MAX_STRING_SIZE/2 - MAX_STRING_SIZE%2 - 7, "Title '%s' wasnt found.", _title);
 				    form_driver(title_form, REQ_END_LINE);
           }
@@ -289,6 +291,7 @@ int title_search(int win_w, int win_h, manga_file* mangas, char** title, int* am
 
 }
 int entry_selector(int win_w, int win_h, manga_file* mangas, char* title, int amount, char**isbns, manga_record** manga){
+  clear();
   int H,W;
 
   ITEM** options = calloc(amount + 1, sizeof(ITEM*));
@@ -298,7 +301,7 @@ int entry_selector(int win_w, int win_h, manga_file* mangas, char* title, int am
     options[i] = new_item(isbns[i], title);
 
   W = 45;
-  H = 3 + 3 * amount;
+  H = 4 + 1 * amount;
   
   selection = new_menu(options);
 
@@ -408,7 +411,6 @@ int entry_visualization(int win_w, int win_h, manga_record* manga){
         break;
     }
   } while(run);
-  clear();
   return option;
 }
 int entry_editing(int win_w, int win_h, manga_record* manga){
@@ -649,6 +651,7 @@ int entry_editing(int win_w, int win_h, manga_record* manga){
 //-1 - exit/save
 #define MAIN_MENU_OPTIONS 3
 int main_menu(int win_w, int win_h){
+  clear();
   int chosen_mode = 0;
   int H,W;
   W = 45;
