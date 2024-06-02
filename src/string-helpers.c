@@ -3,9 +3,6 @@
 #include <stdlib.h>
 #include "string-helpers.h"
 
-#define STRING_END '|'
-#define MAX_STRING_SIZE 100
-
 int write_string(char* string, FILE* file_pointer){
   int string_size = strlen(string);
   fwrite(string, sizeof(char), strlen(string), file_pointer);
