@@ -12,7 +12,8 @@ int write_new_secondary_key_isbn_list(char* isbn, long next, FILE* isbns_file_po
   fseek(isbns_file_pointer, 0, SEEK_END);
   *position = ftell(isbns_file_pointer);
   write_string(isbn, isbns_file_pointer);
-  fwrite(&next, sizeof(long), 1, isbns_file_pointer);
+  long temp_next = next;
+  fwrite(&temp_next, sizeof(long), 1, isbns_file_pointer);
   fflush(isbns_file_pointer);
   return 0;
 }
@@ -46,9 +47,10 @@ int write_secondary_key(secondary_index_entry* entry, FILE* titles_file_pointer)
 }
 
 int read_secondary_key(FILE* titles_file_pointer, secondary_index_entry** entry){
-  *entry = malloc(sizeof(**entry));
-  read_string(titles_file_pointer, &(*entry)->title);
-  fread(&(*entry)->first_position_of_isbn_list, sizeof(long), 1, titles_file_pointer);
+  secondary_index_entry* _entry = calloc(1, sizeof(*_entry));
+  read_string(titles_file_pointer, &_entry->title);
+  fread(&_entry->first_position_of_isbn_list, sizeof(long), 1, titles_file_pointer);
+  *entry = _entry;
   return 0;
 }
 
@@ -110,11 +112,12 @@ int free_secondary_index(secondary_index_entry* entry){
 }
 int free_secondary_index_list(secondary_index_list* secondary_keys){
   secondary_index_list* current = secondary_keys;
+    secondary_index_list* old_current;
   while(current != NULL){
-    free_secondary_index(current->entry);
-    secondary_index_list* next = current->next;
-    free(current);
-    current = next;
+    if(current->entry != NULL) free_secondary_index(current->entry);
+    old_current = current;
+    current = current->next;
+    free(old_current);
   }
   return 0;
 }
@@ -127,8 +130,8 @@ int sorted_insert_secondary_keys(secondary_index_file* secondary_keys_file, char
 
   //title in the start
   if(current == NULL || strcmp(title, current->entry->title) <= 0){
-    //title is the same
-    if(strcmp(title, current->entry->title) == 0){
+    //title is the same and it exists
+    if(current != NULL && strcmp(title, current->entry->title) == 0){
       write_new_secondary_key_isbn_list(isbn, current->entry->first_position_of_isbn_list, secondary_keys_file->isbns_file_pointer, &position);
       current->entry->first_position_of_isbn_list = position;
       return 0;
@@ -149,8 +152,8 @@ int sorted_insert_secondary_keys(secondary_index_file* secondary_keys_file, char
     current = current->next;
   }
 
-  // add isbn to existing title
-  if(strcmp(title, current->next->entry->title) == 0){
+  // add isbn to existing title if next isnt NULL
+  if(current->next != NULL && strcmp(title, current->next->entry->title) == 0){
     write_new_secondary_key_isbn_list(isbn, current->next->entry->first_position_of_isbn_list, secondary_keys_file->isbns_file_pointer, &position);
     current->next->entry->first_position_of_isbn_list = position;
     return 0;
@@ -304,11 +307,9 @@ int search_secondary_keys(secondary_index_file* secondary_index_file, char* titl
 
 int close_secondary_keys(secondary_index_file* secondary_index_file){
   write_all_secondary_keys(secondary_index_file->titles_file_pointer, secondary_index_file->index_list);
-  
   fclose(secondary_index_file->titles_file_pointer);
   fclose(secondary_index_file->isbns_file_pointer);
-  free_secondary_index_list(secondary_index_file->index_list);
-
+  //free_secondary_index_list(secondary_index_file->index_list);
   free(secondary_index_file);
   return 0;
 }

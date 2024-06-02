@@ -96,6 +96,7 @@ int load_record(char* db_name, manga_file** mangas){
   const char secondary_keys_isbns_file_sufix[] = "-keys.sikeys";
   const char secondary_keys_titles_file_sufix[] = "-keys.stkeys";
 
+  //Creating the file names -----
   char *secondary_keys_titles_file_name, *secondary_keys_isbns_file_name;
   char *primary_keys_file_name, *record_file_name;
   int db_name_size = strlen(db_name);
@@ -115,10 +116,13 @@ int load_record(char* db_name, manga_file** mangas){
   secondary_keys_titles_file_name = calloc(db_name_size + strlen(secondary_keys_titles_file_sufix) + 1, sizeof(char));
   memcpy(secondary_keys_titles_file_name, db_name, db_name_size);
   memcpy(&secondary_keys_titles_file_name[db_name_size], secondary_keys_titles_file_sufix, strlen(secondary_keys_titles_file_sufix));
-
+  // ---------------
   open_manga_file(record_file_name, secondary_keys_isbns_file_name, secondary_keys_titles_file_name, primary_keys_file_name, mangas);
+
   free(record_file_name);
   free(primary_keys_file_name);
+  free(secondary_keys_isbns_file_name);
+  free(secondary_keys_titles_file_name);
   return 0;
 }
 #define ISBN_LENGHT 13

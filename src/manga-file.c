@@ -14,10 +14,8 @@ int open_manga_file(char* record_file_name, char* secondary_keys_isbns_file_name
   FILE* record_file = fopen(record_file_name, "r+");
 
   primary_index_list* keys;
-  secondary_index_file* secondary_keys;
+  secondary_index_file* secondary_keys = calloc(1, sizeof(*secondary_keys));
   //setting what files are for the secondary keys
-  secondary_keys->isbns_file_pointer = secondary_keys_isbns_file;
-  secondary_keys_titles_file = secondary_keys_titles_file;
 
   if(keys_file == NULL || read_primary_keys_file(keys_file, &keys) == -1){
     keys_file = fopen(primary_keys_file_name,"w");
@@ -43,6 +41,10 @@ int open_manga_file(char* record_file_name, char* secondary_keys_isbns_file_name
 
       create_secondary_keys_from_record_file(record_file, secondary_keys);
   }
+  //save the file pointers for the secondary key
+  secondary_keys->isbns_file_pointer = secondary_keys_isbns_file;
+  secondary_keys->titles_file_pointer = secondary_keys_titles_file;
+
   //as we are now editing it, mark the file as inconsistent 
   mark_primary_keys_file_as_inconsistent(keys_file);
 
