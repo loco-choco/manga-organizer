@@ -40,6 +40,8 @@ int open_manga_file(char* record_file_name, char* secondary_keys_isbns_file_name
       secondary_keys_titles_file = fopen(secondary_keys_titles_file_name, "w");
 
       create_secondary_keys_from_record_file(record_file, secondary_keys);
+  } else { //Both exist, and no inconsistency, read
+    read_all_secondary_keys(secondary_keys_titles_file, &secondary_keys->index_list);
   }
   //save the file pointers for the secondary key
   secondary_keys->isbns_file_pointer = secondary_keys_isbns_file;

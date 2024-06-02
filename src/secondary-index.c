@@ -82,6 +82,7 @@ int read_all_secondary_keys(FILE* titles_file_pointer, secondary_index_list** se
   }
 
   current = new_current;
+  entry_start = fgetc(titles_file_pointer);
  }
  return 0;
 }
@@ -166,7 +167,6 @@ int sorted_insert_secondary_keys(secondary_index_file* secondary_keys_file, char
   new_entry->entry->first_position_of_isbn_list = position; 
   new_entry->entry->title = malloc(sizeof(char) * (strlen(title) + 1));
   strcpy(new_entry->entry->title, title);
-  
   new_entry->next = current->next;
   current->next = new_entry;
   return 0;
@@ -235,25 +235,51 @@ int move_secondary_keys(secondary_index_file* secondary_index_file, char* old_ti
 
   if(found_isbn == 0) return -2; //couldnt find isbn in this title
 
-  secondary_index_list *new_entry = secondary_index_file->index_list;
-  while(new_entry != NULL && strcmp(title, new_entry->entry->title) > 0){
-    new_entry = new_entry->next;
+  secondary_index_list *entry_to_receive, *current_to_receive;
+  entry_to_receive = NULL;
+  current_to_receive = secondary_index_file->index_list;
+  //Get the entry to be moved to
+  //if this title is before the start, add it
+  if(current_to_receive == NULL || strcmp(title, current_to_receive->entry->title) <= 0){
+    if(strcmp(title, current_to_receive->entry->title) != 0){
+      entry_to_receive = malloc(sizeof(*entry_to_receive));
+      entry_to_receive->entry->first_position_of_isbn_list = -1; 
+      entry_to_receive->entry->title = malloc(sizeof(char) * (strlen(title) + 1));
+      strcpy(entry_to_receive->entry->title, title);
+      entry_to_receive->next = current_to_receive;
+      secondary_index_file->index_list = entry_to_receive;
+    } else {
+      entry_to_receive = current_to_receive;
+    }
   }
-
-  if(new_entry == NULL || strcmp(title, new_entry->entry->title) != 0) 
-    return -3; //no title to move to
-
+ 
+  while(entry_to_receive != NULL && current_to_receive->next != NULL && strcmp(title, current_to_receive->next->entry->title) >= 0){
+    if(strcmp(title, current_to_receive->next->entry->title) == 0) entry_to_receive = current_to_receive->next;
+    current_to_receive = current_to_receive->next;
+  }
+  //if there is none with title, insert it
+  if(entry_to_receive == NULL ){
+    entry_to_receive = malloc(sizeof(*entry_to_receive));
+    entry_to_receive->entry->first_position_of_isbn_list = -1; 
+    entry_to_receive->entry->title = malloc(sizeof(char) * (strlen(title) + 1));
+    strcpy(entry_to_receive->entry->title, title);
+    entry_to_receive->next = current_to_receive->next;
+    current_to_receive->next = entry_to_receive;
+  }
+  //----
   //Adding new isbn to title
-  update_secondary_key_title_list(current_position, new_entry->entry->first_position_of_isbn_list, secondary_index_file->isbns_file_pointer);
-  new_entry->entry->first_position_of_isbn_list = current_position;
+  update_secondary_key_title_list(current_position, entry_to_receive->entry->first_position_of_isbn_list, secondary_index_file->isbns_file_pointer);
+  entry_to_receive->entry->first_position_of_isbn_list = current_position;
+  printf("\n\rNew to file! %s (%ld)->%ld\n", entry_to_receive->entry->title, entry_to_receive->entry->first_position_of_isbn_list, next_position);
 
   //Removing old isbn from title
   //if it was at the start, point to the next
   if(previous_position == current_position){
     current->entry->first_position_of_isbn_list = next_position;
-  } else { //if not, move the linked array
+  } else if (current_position >= 0) { //if not, move the linked array, if it isnt empty
     update_secondary_key_title_list(previous_position, next_position, secondary_index_file->isbns_file_pointer);
   }
+  printf("\n\rOld to file! %s (%ld)\n", secondary_index_file->index_list->entry->title, secondary_index_file->index_list->entry->first_position_of_isbn_list);
   return 0;
 }
 
@@ -291,6 +317,9 @@ int search_secondary_keys(secondary_index_file* secondary_index_file, char* titl
 
   char** _isbns = calloc(amount, sizeof(char*));
 
+  *amount_of_isbns = amount;
+  *isbns = _isbns;
+
   current_position = current->entry->first_position_of_isbn_list;
   while(current_position >= 0){
     read_secondary_key_isbn_list(secondary_index_file->isbns_file_pointer, current_position, &read_isbn, &next_position);
@@ -298,9 +327,6 @@ int search_secondary_keys(secondary_index_file* secondary_index_file, char* titl
     amount--;
     _isbns[amount] = read_isbn;
   }
-  
-  *amount_of_isbns = amount;
-  *isbns = _isbns;
 
   return 0;
 }
