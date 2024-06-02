@@ -123,25 +123,25 @@ int free_secondary_index_list(secondary_index_list* secondary_keys){
 int sorted_insert_secondary_keys(secondary_index_file* secondary_keys_file, char* title, char* isbn){
   long position;
   secondary_index_list* current, *new_entry;
-  current = secondary_keys->index_list;
+  current = secondary_keys_file->index_list;
 
   //title in the start
   if(current == NULL || strcmp(title, current->entry->title) <= 0){
     //title is the same
     if(strcmp(title, current->entry->title) == 0){
-      write_new_secondary_key_isbn_list(isbn, current->entry->first_position_of_isbn_list, secondary_keys->isbns_file_pointer, &position);
+      write_new_secondary_key_isbn_list(isbn, current->entry->first_position_of_isbn_list, secondary_keys_file->isbns_file_pointer, &position);
       current->entry->first_position_of_isbn_list = position;
       return 0;
     }
     //title isnt the same
-    write_new_secondary_key_isbn_list(isbn, -1, secondary_keys->isbns_file_pointer, &position);
+    write_new_secondary_key_isbn_list(isbn, -1, secondary_keys_file->isbns_file_pointer, &position);
 
     new_entry = malloc(sizeof(*new_entry));
     new_entry->entry->first_position_of_isbn_list = position; 
     new_entry->entry->title = malloc(sizeof(char) * (strlen(title) + 1));
     strcpy(new_entry->entry->title, title);
     new_entry->next = current;
-    secondary_keys->index_list = new_entry;
+    secondary_keys_file->index_list = new_entry;
     return 0;
   }
  
@@ -151,13 +151,13 @@ int sorted_insert_secondary_keys(secondary_index_file* secondary_keys_file, char
 
   // add isbn to existing title
   if(strcmp(title, current->next->entry->title) == 0){
-    write_new_secondary_key_isbn_list(isbn, current->next->entry->first_position_of_isbn_list, secondary_keys->isbns_file_pointer, &position);
+    write_new_secondary_key_isbn_list(isbn, current->next->entry->first_position_of_isbn_list, secondary_keys_file->isbns_file_pointer, &position);
     current->next->entry->first_position_of_isbn_list = position;
     return 0;
   }
 
   //new title in middle or end
-  write_new_secondary_key_isbn_list(isbn, -1, secondary_keys->isbns_file_pointer, &position);
+  write_new_secondary_key_isbn_list(isbn, -1, secondary_keys_file->isbns_file_pointer, &position);
 
   new_entry = malloc(sizeof(*new_entry));
   new_entry->entry->first_position_of_isbn_list = position; 
