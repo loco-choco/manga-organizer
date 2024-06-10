@@ -31,8 +31,8 @@ int update_secondary_key_title_list(long position, long new_next, FILE* isbns_fi
   do {
     string_end = fgetc(isbns_file_pointer);
   } while(string_end != STRING_END);
-
-  fwrite(&new_next, sizeof(long), 1, isbns_file_pointer);
+  long temp_next = new_next;
+  fwrite(&temp_next, sizeof(long), 1, isbns_file_pointer);
   fflush(isbns_file_pointer);
   return 0;
 }
