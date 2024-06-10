@@ -16,7 +16,8 @@ struct manga_record {
   int end_year;
   int edition_year;
   int volumes_amount;
-  char* volumes;
+  int acquired_volumes_amount;
+  char* acquired_volumes;
   int original_size;
 } typedef manga_record;
 

@@ -384,8 +384,9 @@ int entry_visualization(int win_w, int win_h, manga_record* manga){
   mvprintw(win_h/2 - 4, win_w/2 - 20,"start_year=%d\n", manga->start_year);
   mvprintw(win_h/2 - 3, win_w/2 - 20,"end_year=%d\n", manga->end_year);
   mvprintw(win_h/2 - 2, win_w/2 - 20,"edition_year=%d\n", manga->edition_year);
-  mvprintw(win_h/2 - 1, win_w/2 - 20,"volumes=[");
-  for(int i = 0; i < manga->volumes_amount; i++) printw(" %d", manga->volumes[i]);
+  mvprintw(win_h/2 - 1, win_w/2 - 20,"volumes=%d\n", manga->volumes_amount);
+  mvprintw(win_h/2 - 0, win_w/2 - 20,"acquired_volumes=[");
+  for(int i = 0; i < manga->acquired_volumes_amount; i++) printw(" %d", manga->acquired_volumes[i]);
   printw(" ]\n");
   
   mvprintw(LINES - 4, 0, "Press e to edit entry");
@@ -417,7 +418,7 @@ int entry_editing(int win_w, int win_h, manga_record* manga){
   //Editar a entrada
   //Retornar 0 se o usuario confirmar, -1 se ele cancelar
   FORM  *editing_form;
-  FIELD *editing_field[11];
+  FIELD *editing_field[12];
 
   //isbn
   editing_field[0] = new_field(1, ISBN_LENGHT, win_h/2 - 5, win_w/2 - MAX_STRING_SIZE, 0, 0);
@@ -474,27 +475,35 @@ int entry_editing(int win_w, int win_h, manga_record* manga){
   char edition_year_str[5];
   sprintf(edition_year_str, "%d", manga->edition_year);
   set_field_buffer(editing_field[8], 0, edition_year_str);
-  //volumes
-  editing_field[9] = new_field(1, MAX_STRING_SIZE*2, win_h/2 + 4, win_w/2 - MAX_STRING_SIZE, 0, 0);
+  //existing volumes
+  editing_field[9] = new_field(1, 4, win_h/2 + 4, win_w/2 - MAX_STRING_SIZE, 0, 0);
   set_field_back(editing_field[9], A_UNDERLINE);
-  set_field_type(editing_field[9], TYPE_REGEXP, "[0-1]{0,1}[0-9]{0,2}( *, *[0-1]{0,1}[0-9]{0,2})* *$");
+  set_field_type(editing_field[9], TYPE_INTEGER, 0, 0, 9999);
 	field_opts_off(editing_field[9], O_AUTOSKIP);
+  char existing_volumes_str[5];
+  sprintf(existing_volumes_str, "%d", manga->volumes_amount);
+  set_field_buffer(editing_field[9], 0, existing_volumes_str);
+  //volumes
+  editing_field[10] = new_field(1, MAX_STRING_SIZE*2, win_h/2 + 5, win_w/2 - MAX_STRING_SIZE, 0, 0);
+  set_field_back(editing_field[10], A_UNDERLINE);
+  set_field_type(editing_field[10], TYPE_REGEXP, "[0-1]{0,1}[0-9]{0,2}( *, *[0-1]{0,1}[0-9]{0,2})* *$");
+	field_opts_off(editing_field[10], O_AUTOSKIP);
 
   char *volumes_str;
   size_t size;
   FILE *volumes_str_stream;
 
   volumes_str_stream = open_memstream (&volumes_str, &size);
-  for(int i = 0; i < manga->volumes_amount; i++){
+  for(int i = 0; i < manga->acquired_volumes_amount; i++){
     if(i > 0) fprintf(volumes_str_stream, ", ");
-    fprintf(volumes_str_stream, "%d", manga->volumes[i]);
+    fprintf(volumes_str_stream, "%d", manga->acquired_volumes[i]);
   }
   fflush (volumes_str_stream);
   fclose (volumes_str_stream);
   
-  set_field_buffer(editing_field[9], 0, volumes_str);
+  set_field_buffer(editing_field[10], 0, volumes_str);
  
-  editing_field[10] = NULL;
+  editing_field[11] = NULL;
 
   editing_form = new_form(editing_field);
 	post_form(editing_form);
@@ -510,8 +519,9 @@ int entry_editing(int win_w, int win_h, manga_record* manga){
 	mvprintw(win_h/2 + 1, win_w/2 -11 - MAX_STRING_SIZE, "START YEAR:");
 	mvprintw(win_h/2 + 2, win_w/2 - 9 - MAX_STRING_SIZE, "END YEAR:");
 	mvprintw(win_h/2 + 3, win_w/2 -13 - MAX_STRING_SIZE, "EDITION YEAR:");
-	mvprintw(win_h/2 + 4, win_w/2 -11 - MAX_STRING_SIZE, "VOLUMES: [ ");
-	mvprintw(win_h/2 + 4, win_w/2 + MAX_STRING_SIZE, " ]");
+	mvprintw(win_h/2 + 4, win_w/2 - 8 - MAX_STRING_SIZE, "VOLUMES:");
+	mvprintw(win_h/2 + 5, win_w/2 -20 - MAX_STRING_SIZE, "ACQUIRED VOLUMES: [ ");
+	mvprintw(win_h/2 + 5, win_w/2 + MAX_STRING_SIZE, " ]");
   
   mvprintw(LINES - 4, 0, "Press <ENTER> to confirm");
   mvprintw(LINES - 3, 0, "Press F2 to save");
@@ -615,8 +625,11 @@ int entry_editing(int win_w, int win_h, manga_record* manga){
     //edition year
     char* edition_year = field_buffer(editing_field[8], 0);
     manga->edition_year = atoi(edition_year);
+    //existing volumes
+    char* existing_volumes = field_buffer(editing_field[9], 0);
+    manga->volumes_amount = atoi(existing_volumes);
     //volumes
-    char* volumes = field_buffer(editing_field[9], 0);
+    char* volumes = field_buffer(editing_field[10], 0);
     int str_size = strlen(volumes);
     int* buffer = malloc(sizeof(int) * MAX_STRING_SIZE);
     int amount_of_volumes = 0;
@@ -626,11 +639,11 @@ int entry_editing(int win_w, int win_h, manga_record* manga){
       amount_of_volumes++;
       pch = strtok (NULL, " ,");
     }
-    free(manga->volumes);
-    manga->volumes = malloc(sizeof(char) * amount_of_volumes);
+    free(manga->acquired_volumes);
+    manga->acquired_volumes = malloc(sizeof(char) * amount_of_volumes);
     for(int i = 0; i < amount_of_volumes; i++) 
-      manga->volumes[i] = buffer[i];
-    manga->volumes_amount = amount_of_volumes;
+      manga->acquired_volumes[i] = buffer[i];
+    manga->acquired_volumes_amount = amount_of_volumes;
     
     free(buffer);
     free(volumes_str);

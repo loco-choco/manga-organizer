@@ -19,7 +19,8 @@ int write_record(manga_record* record, FILE* file_pointer){
   fwrite(&record->start_year, sizeof(int), 1, file_pointer);
   fwrite(&record->end_year, sizeof(int), 1, file_pointer);
   fwrite(&record->edition_year, sizeof(int), 1, file_pointer);
-  fwrite(record->volumes, sizeof(char), record->volumes_amount, file_pointer);
+  fwrite(&record->volumes_amount, sizeof(int), 1, file_pointer);
+  fwrite(record->acquired_volumes, sizeof(char), record->acquired_volumes_amount, file_pointer);
   char end_of_record = END_OF_VOLUMES;
   fwrite(&end_of_record, sizeof(char), 1, file_pointer);
   return 0;
@@ -36,21 +37,22 @@ int read_record(FILE* file_pointer, manga_record** record){
   fread(&(*record)->start_year, sizeof(int), 1, file_pointer);
   fread(&(*record)->end_year, sizeof(int), 1, file_pointer);
   fread(&(*record)->edition_year, sizeof(int), 1, file_pointer);
+  fread(&(*record)->volumes_amount, sizeof(int), 1, file_pointer);
 
-  int volumes_amount = 0;
+  int acquired_volumes_amount = 0;
   char* buffer = malloc(MAX_VOLUME_AMOUNT * sizeof(char));
   char volume;
   volume = getc(file_pointer);
   while(volume != END_OF_VOLUMES){
-    if(volumes_amount < MAX_VOLUME_AMOUNT){
-      buffer[volumes_amount] = volume;
-      volumes_amount++;
+    if(acquired_volumes_amount < MAX_VOLUME_AMOUNT){
+      buffer[acquired_volumes_amount] = volume;
+      acquired_volumes_amount++;
     }
     volume = getc(file_pointer);
   }
-  (*record)->volumes_amount = volumes_amount;
-  (*record)->volumes = malloc(sizeof(char) * (*record)->volumes_amount);
-  memcpy((*record)->volumes, buffer, sizeof(char) * volumes_amount);
+  (*record)->acquired_volumes_amount = acquired_volumes_amount;
+  (*record)->acquired_volumes = malloc(sizeof(char) * (*record)->acquired_volumes_amount);
+  memcpy((*record)->acquired_volumes, buffer, sizeof(char) * acquired_volumes_amount);
   free(buffer);
 
   int og_size;
@@ -102,8 +104,9 @@ int print_record(manga_record* record){
   printf("start_year=%d\n", record->start_year);
   printf("end_year=%d\n", record->end_year);
   printf("edition_year=%d\n", record->edition_year);
-  printf("volumes_year=[");
-  for(int i = 0; i < record->volumes_amount; i++) printf(" %d", record->volumes[i]);
+  printf("volumes_amount=%d\n", record->volumes_amount);
+  printf("acquired_volumes=[");
+  for(int i = 0; i < record->acquired_volumes_amount; i++) printf(" %d", record->acquired_volumes[i]);
   printf(" ]\n");
   return 0;
 }
@@ -118,7 +121,8 @@ int record_size(manga_record* record, int* size){
     sizeof(int) +
     sizeof(int) +
     sizeof(int) +
-    sizeof(int) * record->volumes_amount +
+    sizeof(int) +
+    sizeof(char) * record->volumes_amount +
     sizeof(char);
   return 0;
 }
@@ -130,7 +134,7 @@ int free_record_entry(manga_record* record){
   if(record->genre != NULL) free(record->genre);
   if(record->magazine != NULL) free(record->magazine);
   if(record->publisher != NULL) free(record->publisher);
-  if(record->volumes != NULL) free(record->volumes);
+  if(record->acquired_volumes != NULL) free(record->acquired_volumes);
   free(record);
   return 0;
 }
